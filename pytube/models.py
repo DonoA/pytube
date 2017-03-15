@@ -47,6 +47,14 @@ class Video(object):
         self.audio_codec = audio_codec
         self.audio_bitrate = audio_bitrate
 
+    def size(self):
+        """Get the size of the remote video without downloading"""
+        response = urlopen(self.url)
+        meta_data = dict(response.info().items())
+        file_size = int(meta_data.get("Content-Length") or
+                        meta_data.get("content-length"))
+        return file_size
+
     def download(self, path, chunk_size=8 * 1024, on_progress=None,
                  on_finish=None, force_overwrite=False):
         """Downloads the video.
@@ -77,9 +85,7 @@ class Video(object):
             raise OSError("Conflicting filename:'{0}'".format(self.filename))
         # TODO: Split up the downloading and OS jazz into separate functions.
         response = urlopen(self.url)
-        meta_data = dict(response.info().items())
-        file_size = int(meta_data.get("Content-Length") or
-                        meta_data.get("content-length"))
+        file_size = self.size()
         self._bytes_received = 0
         start = clock()
         # TODO: Let's get rid of this whole try/except block, let ``OSErrors``
